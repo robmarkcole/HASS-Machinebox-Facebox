@@ -11,5 +11,9 @@ image_processing:
       - entity_id: camera.local_file
 ```
 
+<p align="center">
+<img src="https://github.com/robmarkcole/HASS-Machinebox-Facebox/blob/master/usage.png" width="800">
+</p>
+
 ## Plan
-Overall plan for this component: I aim to tackle the problem of user authentication in Home-Assistant. I will use facial recognition/classification to determine when a user is identified, and this will allow them to disarm their [alarm system]( https://www.hackster.io/colinodell/diy-alarm-control-panel-for-home-assistant-ac1813). I will show how facial recognition alone is not secure (spoofing with a photo), then add [bluetooth presence detection](https://www.hackster.io/vpetersson/sonar-wireless-foot-traffic-information-for-retail-b17cc1) and/or other [presence detection](https://www.home-assistant.io/components/#presence-detection) and use stats to show the improvement in security. 
+Overall plan for this component: I aim to tackle the problem of user authentication in Home-Assistant. I will use facial recognition/classification to determine when a user is identified, and this will allow them to disarm their [alarm system]( https://www.hackster.io/colinodell/diy-alarm-control-panel-for-home-assistant-ac1813). I will show how facial recognition alone is not secure (spoofing with a photo), then add [bluetooth presence detection](https://www.hackster.io/vpetersson/sonar-wireless-foot-traffic-information-for-retail-b17cc1) and/or other [presence detection](https://www.home-assistant.io/components/#presence-detection) and use stats to show the improvement in security.
