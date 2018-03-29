@@ -121,6 +121,7 @@ class Facebox(ImageProcessingEntity):
                 linewidth=5, edgecolor='r', facecolor='none')
             ax.add_patch(rect)
         plt.savefig(IMAGES_FOLDER + "boxed_image.png")
+        plt.close()
 
     @property
     def device_class(self):
