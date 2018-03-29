@@ -19,6 +19,8 @@ from homeassistant.components.image_processing import (
 _LOGGER = logging.getLogger(__name__)
 
 CONF_ENDPOINT = 'endpoint'
+SAVE_BOUNDING = True
+IMAGES_FOLDER = "/Users/robincole/.homeassistant/images/"
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_ENDPOINT): cv.string,
@@ -64,7 +66,9 @@ class Facebox(ImageProcessingEntity):
             ).json()
 
         if response['success']:
-            self._state, self._attr = self.process_response(response)
+            self._state, self._attr, boxes = self.process_response(response)
+            if SAVE_BOUNDING:
+                self.save_boxes_image(self.save_image(image), boxes)
         else:
             self._state = "Request_failed"
             self._attr = {}
@@ -73,10 +77,12 @@ class Facebox(ImageProcessingEntity):
         """Return the number of faces and identified faces."""
         total_faces = response['facesCount']
         attr = {}
+        bounding_boxes = []
         for face in response['faces']:
+            bounding_boxes.append(face['rect'])
             if face['matched']:
                 attr[face['name']] = round(face['confidence'], 2)
-        return total_faces, attr
+        return total_faces, attr, bounding_boxes
 
     def encode_image(self, image):
         """base64 encode an image stream."""
@@ -88,9 +94,33 @@ class Facebox(ImageProcessingEntity):
         from PIL import Image
         stream = io.BytesIO(image)
         img = Image.open(stream)
-        IMG = 'facebox.jpg'
+        IMG = IMAGES_FOLDER + 'facebox.jpg'
         img.save(IMG)
         return IMG
+
+    def save_boxes_image(self, img_file, bounding_boxes):
+        """Take an image file and dict of bounding boxes and save the
+        boxes on a copy of the image."""
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+        import matplotlib.patches as patches
+
+        img = plt.imread(img_file)
+        fig, ax = plt.subplots()
+        ax.axis('off')
+        ax.imshow(img)
+        for box in bounding_boxes:
+            x = box['left']
+            y = box['top']
+            width = box['width']
+            height = box['height']
+
+            rect = patches.Rectangle(
+                (x, y), width, height,
+                linewidth=5, edgecolor='r', facecolor='none')
+            ax.add_patch(rect)
+        plt.savefig(IMAGES_FOLDER + "boxed_image.png")
 
     @property
     def device_class(self):
