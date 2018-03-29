@@ -5,7 +5,6 @@ For more details about this platform, please refer to the documentation at
 https://home-assistant.io/components/image_processing.facebox
 """
 import base64
-from datetime import timedelta
 import io
 import requests
 import logging
@@ -20,8 +19,6 @@ from homeassistant.components.image_processing import (
 _LOGGER = logging.getLogger(__name__)
 
 CONF_ENDPOINT = 'endpoint'
-
-SCAN_INTERVAL = timedelta(seconds=8)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_ENDPOINT): cv.string,
@@ -55,9 +52,9 @@ class Facebox(ImageProcessingEntity):
             self._name = "Facebox {0}".format(
                 split_entity_id(camera_entity)[1])
         self._camera_entity = camera_entity
-    #    self._headers = {'content-type': 'application/json, charset=utf-8'}
         self._url = "http://{}/facebox/check".format(endpoint)
         self._state = None
+        self._attr = {}
 
     def process_image(self, image):
         """Process an image."""
@@ -67,9 +64,19 @@ class Facebox(ImageProcessingEntity):
             ).json()
 
         if response['success']:
-            self._state = response['facesCount']
+            self._state, self._attr = self.process_response(response)
         else:
             self._state = "Request_failed"
+            self._attr = {}
+
+    def process_response(self, response):
+        """Return the number of faces and identified faces."""
+        total_faces = response['facesCount']
+        attr = {}
+        for face in response['faces']:
+            if face['matched']:
+                attr[face['name']] = round(face['confidence'], 2)
+        return total_faces, attr
 
     def encode_image(self, image):
         """base64 encode an image stream."""
@@ -103,8 +110,7 @@ class Facebox(ImageProcessingEntity):
     @property
     def state_attributes(self):
         """Return device specific state attributes."""
-        attr = {}
-        return attr
+        return self._attr
 
     @property
     def icon(self):
