@@ -94,7 +94,7 @@ class Facebox(ImageProcessingEntity):
         from PIL import Image
         stream = io.BytesIO(image)
         img = Image.open(stream)
-        IMG = IMAGES_FOLDER + 'facebox.jpg'
+        IMG = IMAGES_FOLDER + 'facebox.png'
         img.save(IMG)
         return IMG
 
