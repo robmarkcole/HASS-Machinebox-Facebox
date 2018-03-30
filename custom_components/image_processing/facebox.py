@@ -49,6 +49,7 @@ class Facebox(ImageProcessingEntity):
 
     def __init__(self, hass, name, endpoint, camera_entity):
         """Init with the API key and model id"""
+        super().__init__()
         self.hass = hass
         if name:  # Since name is optional.
             self._name = name
