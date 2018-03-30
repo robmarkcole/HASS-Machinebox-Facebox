@@ -118,9 +118,10 @@ class Facebox(ImageProcessingEntity):
 
             rect = patches.Rectangle(
                 (x, y), width, height,
-                linewidth=5, edgecolor='r', facecolor='none')
+                linewidth=2, edgecolor='r', facecolor='none')
             ax.add_patch(rect)
-        plt.savefig(IMAGES_FOLDER + "boxed_image.png")
+        plt.savefig(IMAGES_FOLDER + "boxed_image.png",
+                    transparent=True, bbox_inches='tight', pad_inches=0)
         plt.close()
 
     @property
