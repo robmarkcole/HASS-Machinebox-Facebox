@@ -13,7 +13,7 @@ from homeassistant.core import split_entity_id
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components.image_processing import (
     PLATFORM_SCHEMA, CONF_SOURCE, CONF_ENTITY_ID,
-    CONF_NAME, CONF_CONFIDENCE)
+    CONF_NAME, CONF_CONFIDENCE, DEFAULT_CONFIDENCE)
 from homeassistant.components.image_processing.microsoft_face_identify import (
     ImageProcessingFaceEntity)
 
@@ -23,6 +23,8 @@ CONF_ENDPOINT = 'endpoint'
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_ENDPOINT): cv.string,
+    vol.Optional(CONF_CONFIDENCE, default=DEFAULT_CONFIDENCE):
+        vol.All(vol.Coerce(float), vol.Range(min=0, max=100))
 })
 
 
@@ -62,8 +64,10 @@ class Facebox(ImageProcessingFaceEntity):
             ).json()
 
         if response['success']:
-            self.total_faces = response['facesCount']
+            self.total_faces = response['facesCount']  # An int
+            # Lets keep only data for identified faces.
             self.faces = response['faces']
+            self.process_faces(self.faces, self.total_faces)
         else:
             self.total_faces = "Request_failed"
             self.faces = []

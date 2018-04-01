@@ -7,9 +7,14 @@ Add to your HA config:
 image_processing:
   - platform: facebox
     endpoint: localhost:8080
+    confidence: 0.5
     source:
       - entity_id: camera.local_file
 ```
+
+**endpoint**: the ip and port of your facebox instance
+**confidence**: The confidence on a scale of 0-1 of a matched face. Only faces that have been [taught](https://machineboxio.com/docs/facebox/teaching-facebox#teach-paul-mccartney) to facebox can be matched.
+**source**: Must be a camera.
 
 <p align="center">
 <img src="https://github.com/robmarkcole/HASS-Machinebox-Facebox/blob/master/usage.png" width="800">
