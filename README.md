@@ -17,7 +17,7 @@ image_processing:
 **source**: Must be a camera.
 
 <p align="center">
-<img src="https://github.com/robmarkcole/HASS-Machinebox-Facebox/blob/master/usage.png" width="800">
+<img src="https://github.com/robmarkcole/HASS-Machinebox-Facebox/blob/master/usage.png" width="500">
 </p>
 
 ## Plan
