@@ -7,6 +7,7 @@ https://home-assistant.io/components/image_processing.facebox
 import base64
 import requests
 import logging
+import time
 import voluptuous as vol
 
 from homeassistant.core import split_entity_id
@@ -55,17 +56,20 @@ class Facebox(ImageProcessingFaceEntity):
         self._camera = camera_entity
         self._confidence = confidence
         self._url = "http://{}/facebox/check".format(endpoint)
+        self._response_time = None
 
     def process_image(self, image):
         """Process an image."""
+        timer_start = time.perf_counter()
         response = requests.post(
             self._url,
             json=self.encode_image(image)
             ).json()
 
         if response['success']:
-            self.total_faces = response['facesCount']  # An int
-            # Lets keep only data for identified faces.
+            elapsed_time = time.perf_counter() - timer_start
+            self._response_time = round(elapsed_time, 1)
+            self.total_faces = response['facesCount']  # An int.
             self.faces = response['faces']
             self.process_faces(self.faces, self.total_faces)
         else:
@@ -91,3 +95,10 @@ class Facebox(ImageProcessingFaceEntity):
     def name(self):
         """Return the name of the sensor."""
         return self._name
+
+    @property
+    def device_state_attributes(self):
+        """Return other details about the sensor state."""
+        attr = self.state_attributes
+        attr.update({'response_time': self._response_time})
+        return attr
