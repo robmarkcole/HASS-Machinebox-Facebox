@@ -9,18 +9,16 @@ Add to your Home-Assistant config:
 image_processing:
   - platform: facebox
     endpoint: localhost:8080
-    confidence: 0.5
     scan_interval: 5
     source:
       - entity_id: camera.local_file
 ```
 Configuration variables:
 - **endpoint**: the ip (here `localhost`) and port (default `8080`) of your facebox instance
-- **confidence**: The confidence on a scale of 0-1 of a taught face (default `0` for unrecognised faces).
 - **scan_interval** (optional): [see the docs](https://www.home-assistant.io/docs/configuration/platform_options/#scan-interval), units seconds, default of 10 seconds.
 - **source**: Must be a camera.
 
-The component adds an `image_processing` entity. The state of the entity is the name of any taught faces that are found in the image. If no taught faces are found the state of the entity is `unknown`. The entity has an attribute `total_faces` which is the total number of faces found. The attribute `faces` contains a list of bounding boxes for the faces. The attribute `response_time` is the time in seconds for facebox to perform processing on an image. Your `scan_interval` therefore cannot be shorter than `response_time`.
+The component adds an `image_processing` entity. The state of the entity is the name of any taught faces that are found in the image. If no taught faces are found the state of the entity is `unknown`. The entity has an attribute `total_faces` which is the total number of faces found. The entity attributes includes a list of each taught  face that is found and its confidence. The attribute `response_time` is the time in seconds for facebox to perform processing on an image. Your `scan_interval` therefore should not be shorter than `response_time`.
 
 <p align="center">
 <img src="https://github.com/robmarkcole/HASS-Machinebox-Facebox/blob/master/usage.png" width="500">
