@@ -29,3 +29,6 @@ The component adds an `image_processing` entity. The state of the entity is the 
 
 #### Intended Usage
 I will use facial recognition for user authentication, and this will allow them to disarm their [alarm system]( https://www.hackster.io/colinodell/diy-alarm-control-panel-for-home-assistant-ac1813). I will show how facial recognition alone is not secure (spoofing with a photo), then add [bluetooth presence detection](https://www.hackster.io/vpetersson/sonar-wireless-foot-traffic-information-for-retail-b17cc1) and/or other [presence detection](https://www.home-assistant.io/components/#presence-detection) and use stats to show the improvement in security.
+
+#### Hardware
+I am running facebox on my mac (classification time approx 4 seconds) and also on my synology NAS with 8 GB ram (classification time approx 7.5 seconds).
