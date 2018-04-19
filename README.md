@@ -21,7 +21,7 @@ Configuration variables:
 The component adds an `image_processing` entity. The state of the entity is the name of any taught faces that are found in the image. If no taught faces are found the state of the entity is `unknown`. The entity has an attribute `total_faces` which is the total number of faces found. The entity attributes includes a list of each taught  face that is found and its confidence. The attribute `response_time` is the time in seconds for facebox to perform processing on an image. Your `scan_interval` therefore should not be shorter than `response_time`.
 
 <p align="center">
-<img src="https://github.com/robmarkcole/HASS-Machinebox-Facebox/blob/master/usage.png" width="500">
+<img src="https://github.com/robmarkcole/HASS-Machinebox-Facebox/blob/master/usage.png" width="800">
 </p>
 
 #### Run Tagbox
