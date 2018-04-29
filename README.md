@@ -1,5 +1,5 @@
 # HASS-Machinebox-Facebox
-Home-Assistant component for facial detection using [facebox](https://machineboxio.com/docs/facebox/teaching-facebox).
+Home-Assistant component for face detection (number of faces) using [facebox](https://machineboxio.com/docs/facebox/teaching-facebox).
 
 Place the `custom_components` folder in your configuration directory (or add its contents to an existing `custom_components` folder).
 
@@ -16,7 +16,7 @@ Configuration variables:
 - **endpoint**: the ip (here `localhost`) and port (default `8080`) of your facebox instance
 - **source**: Must be a camera.
 
-The component adds an `image_processing` entity. The state of the entity is the name of any taught faces that are found in the image. The attribute `response_time` is the time in seconds for facebox to perform processing on an image. Your `scan_interval` must be longer than `response_time`.
+The component adds an `image_processing` entity. The state of the entity is the number of faces that are found in the image. The attribute `response_time` is the time in seconds for facebox to perform processing on an image. Your `scan_interval` must be longer than `response_time`. Note that the bounding boxes of faces are also accessible from the attributes. TO DO - write a CC for adding bounding boxes to the image.
 
 <p align="center">
 <img src="https://github.com/robmarkcole/HASS-Machinebox-Facebox/blob/master/usage.png" width="650">
