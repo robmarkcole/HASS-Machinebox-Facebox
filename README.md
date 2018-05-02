@@ -8,12 +8,14 @@ Add to your Home-Assistant config:
 ```yaml
 image_processing:
   - platform: facebox
-    endpoint: localhost:8080
+    ip_address: localhost # or e.g. 192.168.0.1
+    port: 8080
     source:
       - entity_id: camera.local_file
 ```
 Configuration variables:
-- **endpoint**: the ip (here `localhost`) and port (default `8080`) of your facebox instance
+- **ip_address**: the ip address of your facebox instance.
+- **port**: the port of your facebox instance.
 - **source**: Must be a camera.
 
 The component adds an `image_processing` entity where the state of the entity is the number of faces that are found in the camera image. The attribute `response_time` is the time in seconds for facebox to perform processing on an image. Your `scan_interval` must be longer than `response_time`. Note that the bounding boxes of faces are also accessible from the attributes. TO DO - write a CC for adding bounding boxes to the image.
