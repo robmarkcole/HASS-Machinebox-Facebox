@@ -20,7 +20,7 @@ MOCK_RESPONSE = """
 VALID_ENTITY_ID = 'image_processing.facebox_demo_camera'
 VALID_CONFIG = {
     ip.DOMAIN: {
-        'platform': 'facebox',
+        'platform': 'facebox_face_detect',
         CONF_IP_ADDRESS: MOCK_IP,
         CONF_PORT: MOCK_PORT,
         ip.CONF_SOURCE: {
@@ -47,17 +47,21 @@ class TestFaceboxSetup(object):
 
         assert self.hass.states.get(VALID_ENTITY_ID)
 
-#    def test_process_image(self):
+    def test_process_image(self):
         """Test processing of an image."""
+
+        with assert_setup_component(1, ip.DOMAIN):
+            setup_component(self.hass, ip.DOMAIN, VALID_CONFIG)
+        assert self.hass.states.get(VALID_ENTITY_ID)
+
         with requests_mock.Mocker() as mock_req:
             url = "http://{}:{}/facebox/check".format(MOCK_IP, MOCK_PORT)
             mock_req.get(url, text=MOCK_RESPONSE)
             ip.scan(self.hass, entity_id=VALID_ENTITY_ID)
             self.hass.block_till_done()
 
-        assert self.hass.states.get(VALID_ENTITY_ID)
         state = self.hass.states.get(VALID_ENTITY_ID)
-        assert state.state == '0'
+        assert state.state == '1'
 
     def teardown_method(self):
         """Stop everything that was started."""

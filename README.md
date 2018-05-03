@@ -7,7 +7,7 @@ Add to your Home-Assistant config:
 
 ```yaml
 image_processing:
-  - platform: facebox
+  - platform: facebox_face_detect
     ip_address: localhost # or e.g. 192.168.0.1
     port: 8080
     source:
