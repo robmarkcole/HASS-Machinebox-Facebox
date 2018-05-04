@@ -7,7 +7,7 @@ sidebar: true
 comments: false
 sharing: true
 footer: true
-logo: home-assistant.png
+logo: machine-box-alpha.png
 ha_category: Image Processing
 featured: false
 ha_release: 0.69
@@ -17,7 +17,7 @@ The `facebox_face_detect` image processing component allows you to detect (i.e. 
 ```
 MB_KEY="INSERT-YOUR-KEY-HERE"
 
-docker run -p 8080:8080 -e "MB_KEY=$MB_KEY" -e "MB_FACEBOX_DISABLE_RECOGNITION=true" machinebox/facebox
+sudo docker run --name=facebox --restart=always 8080:8080 -e "MB_KEY=$MB_KEY" -e "MB_FACEBOX_DISABLE_RECOGNITION=true" machinebox/facebox
 ```
 
 To enable this component in your installation, add the following to your `configuration.yaml` file:
