@@ -1,7 +1,8 @@
 """The tests for the facebox component."""
 import requests_mock
 
-from homeassistant.const import (CONF_IP_ADDRESS, CONF_PORT)
+from homeassistant.const import (
+    ATTR_ENTITY_ID, CONF_IP_ADDRESS, CONF_PORT)
 from homeassistant.setup import async_setup_component
 import homeassistant.components.image_processing as ip
 
@@ -50,8 +51,10 @@ async def test_process_image(hass):
     with requests_mock.Mocker() as mock_req:
         url = "http://{}:{}/facebox/check".format(MOCK_IP, MOCK_PORT)
         mock_req.post(url, text=MOCK_RESPONSE)
-        ip.scan(hass, entity_id=VALID_ENTITY_ID)
-        hass.block_till_done()
+        await hass.services.async_call(ip.DOMAIN,
+                                       ip.SERVICE_SCAN,
+                                       {ATTR_ENTITY_ID: VALID_ENTITY_ID})
+        await hass.async_block_till_done()
 
     state = hass.states.get(VALID_ENTITY_ID)
     assert state.state == '1'
