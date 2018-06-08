@@ -10,11 +10,12 @@ import logging
 import requests
 import voluptuous as vol
 
+from homeassistant.const import ATTR_NAME
 from homeassistant.core import split_entity_id
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components.image_processing import (
-    PLATFORM_SCHEMA, ImageProcessingFaceEntity, CONF_SOURCE, CONF_ENTITY_ID,
-    CONF_NAME)
+    PLATFORM_SCHEMA, ImageProcessingFaceEntity, ATTR_CONFIDENCE, CONF_SOURCE,
+    CONF_ENTITY_ID, CONF_NAME)
 from homeassistant.const import (CONF_IP_ADDRESS, CONF_PORT)
 
 _LOGGER = logging.getLogger(__name__)
@@ -35,7 +36,8 @@ def encode_image(image):
 
 def parse_faces(raw_faces):
     """Return a list of dict of the name and confidence of matched faces."""
-    return [{face['name']: 100.0*round(face['confidence'], 4)}
+    return [{ATTR_NAME: face['name'],
+             ATTR_CONFIDENCE: 100.0*round(face['confidence'], 4)}
             for face in raw_faces if face['matched']]
 
 
