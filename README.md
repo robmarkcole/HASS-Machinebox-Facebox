@@ -22,6 +22,27 @@ Configuration variables:
 
 The component adds an `image_processing` entity where the state of the entity is the total number of faces that are found in the camera image, and the number of matched faces are in the `matched_faces` attribute. The name and confidence of matched faces are available in the `faces` attribute, and an `image_processing.detect_face` event is fired for every matched face.
 
+## Automations
+Use the events fired to trigger automations. The following example automation fires a notification with a local_file camera image when Ringo Star is recognised:
+```yaml
+- id: '1120092824666'
+  alias: Ringo Starr recognised
+  trigger:
+  - event_data:
+      name: 'Ringo_Starr'
+    event_type: image_processing.detect_face
+    platform: event
+  condition: []
+  action:
+  - data_template:
+      message: Ringo_Starr with recognised with probability {{ trigger.event.data.confidence }}
+      title: Ringo Starr recognised
+      data:
+        file: ' {{states.camera.local_file.attributes.file_path}} '
+    service: notify.pushbullet
+```
+
+
 <p align="center">
 <img src="https://github.com/robmarkcole/HASS-Machinebox-Facebox/blob/master/usage.png" width="750">
 </p>
