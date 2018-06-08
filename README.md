@@ -35,8 +35,8 @@ Use the events fired to trigger automations. The following example automation fi
   condition: []
   action:
   - data_template:
-      message: Ringo_Starr with recognised with probability {{ trigger.event.data.confidence }}
-      title: Ringo Starr recognised
+      message: Ringo_Starr recognised with probability {{ trigger.event.data.confidence }}
+      title: Door-cam notification
       data:
         file: ' {{states.camera.local_file.attributes.file_path}} '
     service: notify.pushbullet
