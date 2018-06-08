@@ -33,10 +33,10 @@ def encode_image(image):
     return {"base64": base64_img}
 
 
-def get_matched_faces(faces):
-    """Return the name and rounded confidence of matched faces."""
-    return {face['name']: round(face['confidence'], 2)
-            for face in faces if face['matched']}
+def parse_faces(raw_faces):
+    """Return a list of dict of the name and confidence of matched faces."""
+    return [{face['name']: 100.0*round(face['confidence'], 4)}
+            for face in raw_faces if face['matched']]
 
 
 def setup_platform(hass, config, add_devices, discovery_info=None):
@@ -66,7 +66,6 @@ class FaceClassifyEntity(ImageProcessingFaceEntity):
             camera_name = split_entity_id(camera_entity)[1]
             self._name = "{} {}".format(
                 CLASSIFIER, camera_name)
-        self._matched = {}
 
     def process_image(self, image):
         """Process an image."""
@@ -82,15 +81,14 @@ class FaceClassifyEntity(ImageProcessingFaceEntity):
             response['success'] = False
 
         if response['success']:
-            faces = response['faces']
-            total = response['facesCount']
-            self.process_faces(faces, total)
-            self._matched = get_matched_faces(faces)
+            self.total_faces = response['facesCount']
+            self.process_faces(
+                parse_faces(response['faces']),
+                self.total_faces)
 
         else:
             self.total_faces = None
             self.faces = []
-            self._matched = {}
 
     @property
     def camera_entity(self):
@@ -106,5 +104,5 @@ class FaceClassifyEntity(ImageProcessingFaceEntity):
     def device_state_attributes(self):
         """Return the classifier attributes."""
         return {
-            'matched_faces': self._matched,
+            'matched_faces': len(self.faces),
             }

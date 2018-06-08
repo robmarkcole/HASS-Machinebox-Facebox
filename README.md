@@ -20,7 +20,7 @@ Configuration variables:
 - **port**: the port of your facebox instance.
 - **source**: Must be a camera.
 
-The component adds an `image_processing` entity where the state of the entity is the number of faces that are found in the camera image, and identified (recognised) faces are in the `matched_faces` attribute.
+The component adds an `image_processing` entity where the state of the entity is the total number of faces that are found in the camera image, and the number of matched faces are in the `matched_faces` attribute. The name and confidence of matched faces are available in the `faces` attribute, and an `image_processing.detect_face` event is fired for every matched face.
 
 <p align="center">
 <img src="https://github.com/robmarkcole/HASS-Machinebox-Facebox/blob/master/usage.png" width="750">
