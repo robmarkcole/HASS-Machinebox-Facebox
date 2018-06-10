@@ -20,7 +20,9 @@ from homeassistant.const import (CONF_IP_ADDRESS, CONF_PORT)
 
 _LOGGER = logging.getLogger(__name__)
 
+BOUNDING_BOX = 'bounding_box'
 CLASSIFIER = 'facebox'
+IMAGE_ID = 'image_id'
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_IP_ADDRESS): cv.string,
@@ -34,10 +36,17 @@ def encode_image(image):
     return {"base64": base64_img}
 
 
+def get_matched_faces(faces):
+    """Return the name and confidence of matched faces."""
+    return {face['name']: face['confidence'] for face in faces}
+
+
 def parse_faces(raw_faces):
     """Return a list of dict of the name and confidence of matched faces."""
     return [{ATTR_NAME: face['name'],
-             ATTR_CONFIDENCE: 100.0*round(face['confidence'], 4)}
+             ATTR_CONFIDENCE: 100.0*round(face['confidence'], 4),
+             IMAGE_ID: face['id'],
+             BOUNDING_BOX: face['rect']}
             for face in raw_faces if face['matched']]
 
 
@@ -68,6 +77,7 @@ class FaceClassifyEntity(ImageProcessingFaceEntity):
             camera_name = split_entity_id(camera_entity)[1]
             self._name = "{} {}".format(
                 CLASSIFIER, camera_name)
+        self._matched = {}
 
     def process_image(self, image):
         """Process an image."""
@@ -84,13 +94,14 @@ class FaceClassifyEntity(ImageProcessingFaceEntity):
 
         if response['success']:
             self.total_faces = response['facesCount']
-            self.process_faces(
-                parse_faces(response['faces']),
-                self.total_faces)
+            self.faces = parse_faces(response['faces'])
+            self._matched = get_matched_faces(self.faces)
+            self.process_faces(self.faces, self.total_faces)
 
         else:
             self.total_faces = None
             self.faces = []
+            self._matched = {}
 
     @property
     def camera_entity(self):
@@ -106,5 +117,6 @@ class FaceClassifyEntity(ImageProcessingFaceEntity):
     def device_state_attributes(self):
         """Return the classifier attributes."""
         return {
-            'matched_faces': len(self.faces),
+            'matched_faces': self._matched,
+            'total_matched_faces': len(self._matched),
             }

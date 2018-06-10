@@ -1,7 +1,6 @@
 # HASS-Machinebox-Facebox
-**This component has been merged into HA 0.70, but it can be used as a custom component ONLY with HA 0.69 in the meantime**
 
-Home-Assistant component for face detection (number of faces) and identification (recognising trained faces) using [facebox](https://machineboxio.com/docs/facebox/teaching-facebox).
+Home-Assistant component for face detection (number of faces) and identification (recognising trained faces) using [facebox](https://machineboxio.com/docs/facebox/teaching-facebox). The stable version of the component is added to Home-Assistant, and this repo should be considered development.
 
 Place the `custom_components` folder in your configuration directory (or add its contents to an existing `custom_components` folder).
 
@@ -20,7 +19,7 @@ Configuration variables:
 - **port**: the port of your facebox instance.
 - **source**: Must be a camera.
 
-The component adds an `image_processing` entity where the state of the entity is the total number of faces that are found in the camera image, and the number of matched faces are in the `matched_faces` attribute. The name and confidence of matched faces are available in the `faces` attribute, and an `image_processing.detect_face` event is fired for every matched face.
+The component adds an `image_processing` entity where the state of the entity is the total number of faces that are found in the camera image. The name and confidence of matched faces are in the `matched_faces` attribute, whilst the `faces` attribute additionally lists the matching `image_id` and `bounding_box` of matched faces. The number of matched faces is listed in the `total_matched_faces` attribute. An `image_processing.detect_face` event is fired for every matched face.
 
 ## Automations
 Use the events fired to trigger automations. The following example automation fires a notification with a local_file camera image when Ringo Star is recognised:
