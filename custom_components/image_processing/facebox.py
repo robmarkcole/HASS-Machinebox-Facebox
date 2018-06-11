@@ -44,7 +44,7 @@ def get_matched_faces(faces):
 def parse_faces(raw_faces):
     """Return a list of dict of the name and confidence of matched faces."""
     return [{ATTR_NAME: face['name'],
-             ATTR_CONFIDENCE: 100.0*round(face['confidence'], 4),
+             ATTR_CONFIDENCE: round(100.0*face['confidence'], 2),
              IMAGE_ID: face['id'],
              BOUNDING_BOX: face['rect']}
             for face in raw_faces if face['matched']]
