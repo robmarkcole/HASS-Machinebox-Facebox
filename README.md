@@ -20,10 +20,11 @@ Configuration variables:
 - **port**: the port of your facebox instance.
 - **source**: Must be a camera.
 
-The component adds an `image_processing` entity where the state of the entity is the number of faces that are found in the camera image, and identified (recognised) faces are in the `matched_faces` attribute.
+The component adds an `image_processing` entity where the state of the entity is the number of faces that are found in the camera image, and identified (recognised) faces are in the `matched_faces` attribute. An `image_processing.detect_face` event is fired for each identified face, and the event `data` provides the `confidence` of identification, the `name` of the identified person, the `id` of the image associated with the match, the rectangle `rect` that contains the face in the image, and the `entity_id` that the processing was performed on.
 
 ## Automations
-Use the events fired to trigger automations. The following example automation fires a notification with a local_file camera image when Ringo Star is recognised:
+Use the `image_processing.detect_face` events to trigger automations. The following example automation fires a notification when Ringo Star is recognised:
+
 ```yaml
 - id: '1120092824666'
   alias: Ringo Starr recognised
@@ -37,7 +38,7 @@ Use the events fired to trigger automations. The following example automation fi
   - data_template:
       message: Ringo_Starr recognised with probability {{ trigger.event.data.confidence }}
       title: Door-cam notification
-    service: notify.pushbullet
+    service: notify.platform
 ```
 
 <p align="center">
