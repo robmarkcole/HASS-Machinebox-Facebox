@@ -20,7 +20,7 @@ Configuration variables:
 - **source**: Must be a camera.
 
 
-The component adds an `image_processing` entity where the state of the entity is the total number of faces that are found in the camera image. The name and confidence of matched faces are in the `matched_faces` attribute, whilst the `faces` attribute additionally lists the matching `image_id` and `bounding_box` of matched faces. The number of matched faces is listed in the `total_matched_faces` attribute. An `image_processing.detect_face` event is fired for every matched face.
+The component adds an `image_processing` entity where the state of the entity is the total number of faces that are found in the camera image. The name and confidence of matched faces are in the `matched_faces` attribute, whilst the `faces` attribute additionally lists the matching `image_id` and `bounding_box` of matched faces. An `image_processing.detect_face` event is fired for every matched face.
 
 ## Automations
 Use the events fired to trigger automations. The following example automation fires a notification with a local_file camera image when Ringo Star is recognised:
