@@ -31,9 +31,10 @@ MOCK_JSON = {"facesCount": 1,
 
 # Faces data after parsing.
 PARSED_FACES = [{ATTR_NAME: 'John Lennon',
+                 fb.ATTR_IMAGE_ID: 'john.jpg',
                  fb.ATTR_CONFIDENCE: 58.12,
-                 fb.IMAGE_ID: 'john.jpg',
-                 fb.BOUNDING_BOX: {
+                 fb.ATTR_MATCHED: True,
+                 fb.ATTR_BOUNDING_BOX: {
                      'height': 75,
                      'left': 63,
                      'top': 262,
@@ -59,7 +60,7 @@ VALID_CONFIG = {
 
 def test_encode_image():
     """Test that binary data is encoded correctly."""
-    assert fb.encode_image(b'test')["base64"] == 'dGVzdA=='
+    assert fb.encode_image(b'test') == 'dGVzdA=='
 
 
 def test_parse_faces():
@@ -109,7 +110,6 @@ async def test_process_image(hass, mock_image):
     state = hass.states.get(VALID_ENTITY_ID)
     assert state.state == '1'
     assert state.attributes.get('matched_faces') == MATCHED_FACES
-    assert state.attributes.get('total_matched_faces') == 1
 
     PARSED_FACES[0][ATTR_ENTITY_ID] = VALID_ENTITY_ID  # Update.
     assert state.attributes.get('faces') == PARSED_FACES
@@ -120,9 +120,10 @@ async def test_process_image(hass, mock_image):
     assert (face_events[0].data[fb.ATTR_CONFIDENCE]
             == PARSED_FACES[0][fb.ATTR_CONFIDENCE])
     assert face_events[0].data[ATTR_ENTITY_ID] == VALID_ENTITY_ID
-    assert face_events[0].data[fb.IMAGE_ID] == PARSED_FACES[0][fb.IMAGE_ID]
-    assert (face_events[0].data[fb.BOUNDING_BOX] ==
-            PARSED_FACES[0][fb.BOUNDING_BOX])
+    assert (face_events[0].data[fb.ATTR_IMAGE_ID] ==
+            PARSED_FACES[0][fb.ATTR_IMAGE_ID])
+    assert (face_events[0].data[fb.ATTR_BOUNDING_BOX] ==
+            PARSED_FACES[0][fb.ATTR_BOUNDING_BOX])
 
 
 async def test_connection_error(hass, mock_image):
