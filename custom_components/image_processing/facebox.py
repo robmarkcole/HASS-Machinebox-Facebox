@@ -20,9 +20,11 @@ from homeassistant.const import (CONF_IP_ADDRESS, CONF_PORT)
 
 _LOGGER = logging.getLogger(__name__)
 
-BOUNDING_BOX = 'bounding_box'
+ATTR_BOUNDING_BOX = 'bounding_box'
+ATTR_IMAGE_ID = 'image_id'
+ATTR_MATCHED = 'matched'
 CLASSIFIER = 'facebox'
-IMAGE_ID = 'image_id'
+
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_IP_ADDRESS): cv.string,
@@ -33,21 +35,28 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 def encode_image(image):
     """base64 encode an image stream."""
     base64_img = base64.b64encode(image).decode('ascii')
-    return {"base64": base64_img}
+    return base64_img
 
 
 def get_matched_faces(faces):
-    """Return the name and confidence of matched faces."""
-    return {face['name']: face['confidence'] for face in faces}
+    """Return the name and rounded confidence of matched faces."""
+    return {face['name']: round(face['confidence'], 2)
+            for face in faces if face['matched']}
 
 
-def parse_faces(raw_faces):
-    """Return a list of dict of the name and confidence of matched faces."""
-    return [{ATTR_NAME: face['name'],
-             ATTR_CONFIDENCE: round(100.0*face['confidence'], 2),
-             IMAGE_ID: face['id'],
-             BOUNDING_BOX: face['rect']}
-            for face in raw_faces if face['matched']]
+def parse_faces(api_faces):
+    """Parse the API face data into the format required."""
+    known_faces = []
+    for entry in api_faces:
+        face = {}
+        if entry['matched']:  # This data is only in matched faces.
+            face[ATTR_NAME] = entry['name']
+            face[ATTR_IMAGE_ID] = entry['id']
+        face[ATTR_CONFIDENCE] = round(100.0*entry['confidence'], 2)
+        face[ATTR_MATCHED] = entry['matched']
+        face[ATTR_BOUNDING_BOX] = entry['rect']
+        known_faces.append(face)
+    return known_faces
 
 
 def setup_platform(hass, config, add_devices, discovery_info=None):
@@ -85,7 +94,7 @@ class FaceClassifyEntity(ImageProcessingFaceEntity):
         try:
             response = requests.post(
                 self._url,
-                json=encode_image(image),
+                json={"base64": encode_image(image)},
                 timeout=9
                 ).json()
         except requests.exceptions.ConnectionError:
@@ -118,5 +127,4 @@ class FaceClassifyEntity(ImageProcessingFaceEntity):
         """Return the classifier attributes."""
         return {
             'matched_faces': self._matched,
-            'total_matched_faces': len(self._matched),
             }
