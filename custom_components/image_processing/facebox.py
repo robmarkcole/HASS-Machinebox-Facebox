@@ -10,12 +10,13 @@ import logging
 import requests
 import voluptuous as vol
 
-from homeassistant.const import ATTR_NAME
+from homeassistant.const import (
+    ATTR_ENTITY_ID, ATTR_NAME)
 from homeassistant.core import split_entity_id
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components.image_processing import (
     PLATFORM_SCHEMA, ImageProcessingFaceEntity, ATTR_CONFIDENCE, CONF_SOURCE,
-    CONF_ENTITY_ID, CONF_NAME)
+    CONF_ENTITY_ID, CONF_NAME, DOMAIN)
 from homeassistant.const import (CONF_IP_ADDRESS, CONF_PORT)
 
 _LOGGER = logging.getLogger(__name__)
@@ -24,12 +25,20 @@ ATTR_BOUNDING_BOX = 'bounding_box'
 ATTR_IMAGE_ID = 'image_id'
 ATTR_MATCHED = 'matched'
 CLASSIFIER = 'facebox'
+FILE_PATH = 'file_path'
+SERVICE_TEACH = 'teach'
 TIMEOUT = 9
 
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_IP_ADDRESS): cv.string,
     vol.Required(CONF_PORT): cv.port,
+})
+
+SERVICE_TEACH_SCHEMA = vol.Schema({
+    vol.Required(ATTR_ENTITY_ID): cv.entity_ids,
+    vol.Required(ATTR_NAME): cv.string,
+    vol.Required(FILE_PATH): cv.string,
 })
 
 
@@ -67,12 +76,26 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     """Set up the classifier."""
     entities = []
     for camera in config[CONF_SOURCE]:
-        entities.append(FaceClassifyEntity(
+        facebox = FaceClassifyEntity(
             config[CONF_IP_ADDRESS],
             config[CONF_PORT],
             camera[CONF_ENTITY_ID],
-            camera.get(CONF_NAME)
-        ))
+            camera.get(CONF_NAME))
+
+        def teach_service(call):
+            """Teach a facebox a name."""
+            name = call.data.get(ATTR_NAME)
+            file_path = call.data.get(FILE_PATH)
+            facebox.teach(name, file_path)
+            return True
+
+        hass.services.register(
+            DOMAIN,
+            SERVICE_TEACH,
+            teach_service,
+            schema=SERVICE_TEACH_SCHEMA)
+
+        entities.append(facebox)
     add_devices(entities)
 
 
@@ -115,6 +138,10 @@ class FaceClassifyEntity(ImageProcessingFaceEntity):
             self.total_faces = None
             self.faces = []
             self._matched = {}
+
+    def teach(self, name, file_path):
+        """Teach classifier a name."""
+        _LOGGER.error("XXX name: %s file_path: %s", name, file_path)
 
     @property
     def camera_entity(self):
