@@ -6,6 +6,7 @@ https://home-assistant.io/components/image_processing.facebox
 """
 import base64
 import logging
+import os
 
 import requests
 import voluptuous as vol
@@ -28,6 +29,7 @@ CLASSIFIER = 'facebox'
 FILE_PATH = 'file_path'
 SERVICE_TEACH = 'teach'
 TIMEOUT = 9
+VALID_FILETYPES = ('.jpg', '.png', '.jpeg')
 
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
@@ -72,6 +74,38 @@ def parse_faces(api_faces):
     return known_faces
 
 
+def post_image(url, image):
+    """Post an image to the classifier."""
+    try:
+        response = requests.post(
+                    url,
+                    json={"base64": encode_image(image)},
+                    timeout=TIMEOUT
+                    )
+        return response
+    except requests.exceptions.ConnectionError:
+        _LOGGER.error("ConnectionError: Is %s running?", CLASSIFIER)
+
+
+def valid_file_path(file_path):
+    """Check that a file_path points to a valid file."""
+    if not os.access(file_path, os.R_OK):
+        _LOGGER.error(
+            "%s error: Invalid file path: %s", CLASSIFIER, file_path)
+        return False
+    else:
+        return True
+
+
+def valid_image(file_path):
+    """Check that a file_path points to an image."""
+    if file_path.endswith(VALID_FILETYPES):
+        return True
+    else:
+        _LOGGER.error("Not a valid image file: %s", file_path)
+        return False
+
+
 def setup_platform(hass, config, add_devices, discovery_info=None):
     """Set up the classifier."""
     entities = []
@@ -105,7 +139,8 @@ class FaceClassifyEntity(ImageProcessingFaceEntity):
     def __init__(self, ip, port, camera_entity, name=None):
         """Init with the API key and model id."""
         super().__init__()
-        self._url = "http://{}:{}/{}/check".format(ip, port, CLASSIFIER)
+        self._url_check = "http://{}:{}/{}/check".format(ip, port, CLASSIFIER)
+        self._url_teach = "http://{}:{}/{}/teach".format(ip, port, CLASSIFIER)
         self._camera = camera_entity
         if name:
             self._name = name
@@ -117,22 +152,14 @@ class FaceClassifyEntity(ImageProcessingFaceEntity):
 
     def process_image(self, image):
         """Process an image."""
-        response = {}
-        try:
-            response = requests.post(
-                self._url,
-                json={"base64": encode_image(image)},
-                timeout=TIMEOUT
-                ).json()
-        except requests.exceptions.ConnectionError:
-            _LOGGER.error("ConnectionError: Is %s running?", CLASSIFIER)
-            response['success'] = False
-
-        if response['success']:
-            total_faces = response['facesCount']
-            faces = parse_faces(response['faces'])
-            self._matched = get_matched_faces(faces)
-            self.process_faces(faces, total_faces)
+        response = post_image(self._url_check, image)
+        if response is not None:
+            response_json = response.json()
+            if response_json['success']:
+                total_faces = response_json['facesCount']
+                faces = parse_faces(response_json['faces'])
+                self._matched = get_matched_faces(faces)
+                self.process_faces(faces, total_faces)
 
         else:
             self.total_faces = None
@@ -141,7 +168,20 @@ class FaceClassifyEntity(ImageProcessingFaceEntity):
 
     def teach(self, name, file_path):
         """Teach classifier a name."""
-        _LOGGER.error("XXX name: %s file_path: %s", name, file_path)
+        if valid_file_path(file_path) and valid_image(file_path):
+            data = {'name': name, "id": file_path}
+            file = {'file': open(file_path, 'rb')}
+            response = requests.post(self._url_teach, data=data, files=file)
+
+            if response.status_code == 200:
+                _LOGGER.warning(
+                    "{} taught name {} using file {}".format(
+                        CLASSIFIER, name, file_path))
+
+            elif response.status_code == 400:
+                _LOGGER.warning(
+                    "{} teaching of file {} failed with message:{}".format(
+                        CLASSIFIER, file_path, response.text))
 
     @property
     def camera_entity(self):
