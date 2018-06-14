@@ -27,7 +27,7 @@ ATTR_IMAGE_ID = 'image_id'
 ATTR_MATCHED = 'matched'
 CLASSIFIER = 'facebox'
 FILE_PATH = 'file_path'
-SERVICE_TEACH = 'teach'
+SERVICE_TEACH = 'facebox_teach_face'
 TIMEOUT = 9
 VALID_FILETYPES = ('.jpg', '.png', '.jpeg')
 
@@ -167,7 +167,7 @@ class FaceClassifyEntity(ImageProcessingFaceEntity):
             self._matched = {}
 
     def teach(self, name, file_path):
-        """Teach classifier a name."""
+        """Teach classifier a face name."""
         if valid_file_path(file_path) and valid_image(file_path):
             data = {'name': name, "id": file_path}
             file = {'file': open(file_path, 'rb')}
@@ -175,7 +175,7 @@ class FaceClassifyEntity(ImageProcessingFaceEntity):
 
             if response.status_code == 200:
                 _LOGGER.warning(
-                    "{} taught name {} using file {}".format(
+                    "{} taught face with name {} using file {}".format(
                         CLASSIFIER, name, file_path))
 
             elif response.status_code == 400:
