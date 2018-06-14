@@ -40,6 +40,17 @@ Use the events fired to trigger automations. The following example automation fi
       title: Door-cam notification
 ```
 
+## Teach service
+The service `image_processing.teach` can be used to teach Facebox faces, as described in [this blog post](https://towardsdatascience.com/every-superheros-secret-identity-wouldn-t-fool-modern-face-recognition-32c6fda07bb9). Call the service from the `dev-service` panel. Valid image filetypes are those ending in `.jpg`, `.png`, `.jpeg`. Example valid service data is:
+```yaml
+{
+  "entity_id": "image_processing.facebox_local_file",
+  "name": "superman",
+  "file_path": "/Users/robincole/.homeassistant/images/superman_1.jpeg" 
+}
+```
+
+
 <p align="center">
 <img src="https://github.com/robmarkcole/HASS-Machinebox-Facebox/blob/master/usage.png" width="750">
 </p>
