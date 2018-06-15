@@ -27,7 +27,7 @@ ATTR_IMAGE_ID = 'image_id'
 ATTR_MATCHED = 'matched'
 CLASSIFIER = 'facebox'
 FILE_PATH = 'file_path'
-SERVICE_TEACH = 'facebox_teach_face'
+SERVICE_FACEBOX_TEACH_FACE = 'facebox_teach_face'
 TIMEOUT = 9
 VALID_FILETYPES = ('.jpg', '.png', '.jpeg')
 
@@ -125,7 +125,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
 
         hass.services.register(
             DOMAIN,
-            SERVICE_TEACH,
+            SERVICE_FACEBOX_TEACH_FACE,
             teach_service,
             schema=SERVICE_TEACH_SCHEMA)
 
@@ -174,14 +174,25 @@ class FaceClassifyEntity(ImageProcessingFaceEntity):
             response = requests.post(self._url_teach, data=data, files=file)
 
             if response.status_code == 200:
-                _LOGGER.warning(
-                    "{} taught face with name {} using file {}".format(
-                        CLASSIFIER, name, file_path))
+                self.hass.bus.fire(
+                    DOMAIN, {
+                        "event_type": SERVICE_FACEBOX_TEACH_FACE,
+                        'name': name,
+                        'file_path': file_path,
+                        'success': True,
+                        })
 
             elif response.status_code == 400:
                 _LOGGER.warning(
                     "{} teaching of file {} failed with message:{}".format(
                         CLASSIFIER, file_path, response.text))
+                self.hass.bus.fire(
+                    DOMAIN, {
+                        "event_type": SERVICE_FACEBOX_TEACH_FACE,
+                        'name': name,
+                        'file_path': file_path,
+                        'success': False,
+                        })
 
     @property
     def camera_entity(self):
