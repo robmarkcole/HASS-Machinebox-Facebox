@@ -155,7 +155,7 @@ async def test_teach_service(hass):
         teach_events.append(event)
 
     hass.bus.async_listen(
-        'image_processing.facebox_teach_face', mock_teach_event)
+        'image_processing.classifier_teach', mock_teach_event)
 
     m_open = mock.mock_open(read_data=b'hello')
     with mock.patch('os.access', mock.Mock(return_value=True)):

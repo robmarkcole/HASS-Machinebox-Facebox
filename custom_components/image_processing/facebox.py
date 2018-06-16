@@ -26,6 +26,7 @@ ATTR_BOUNDING_BOX = 'bounding_box'
 ATTR_IMAGE_ID = 'image_id'
 ATTR_MATCHED = 'matched'
 CLASSIFIER = 'facebox'
+EVENT_CLASSIFIER_TEACH = 'image_processing.classifier_teach'
 FILE_PATH = 'file_path'
 SERVICE_FACEBOX_TEACH_FACE = 'facebox_teach_face'
 TIMEOUT = 9
@@ -175,8 +176,8 @@ class FaceClassifyEntity(ImageProcessingFaceEntity):
 
             if response.status_code == 200:
                 self.hass.bus.fire(
-                    DOMAIN, {
-                        "event_type": SERVICE_FACEBOX_TEACH_FACE,
+                    EVENT_CLASSIFIER_TEACH, {
+                        'classifier': CLASSIFIER,
                         'name': name,
                         'file_path': file_path,
                         'success': True,
@@ -187,8 +188,8 @@ class FaceClassifyEntity(ImageProcessingFaceEntity):
                     "{} teaching of file {} failed with message:{}".format(
                         CLASSIFIER, file_path, response.text))
                 self.hass.bus.fire(
-                    DOMAIN, {
-                        "event_type": SERVICE_FACEBOX_TEACH_FACE,
+                    EVENT_CLASSIFIER_TEACH, {
+                        'classifier': CLASSIFIER,
                         'name': name,
                         'file_path': file_path,
                         'success': False,
