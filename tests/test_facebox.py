@@ -4,6 +4,7 @@ from unittest.mock import patch
 import pytest
 import requests
 import requests_mock
+from unittest import mock
 
 from homeassistant.core import callback
 from homeassistant.const import (
@@ -71,6 +72,18 @@ def test_get_matched_faces():
 def test_parse_faces():
     """Test parsing of raw face data, and generation of matched_faces."""
     assert fb.parse_faces(MOCK_JSON['faces']) == PARSED_FACES
+
+
+def test_valid_file_path():
+    """Test that an invalid file_path is caught."""
+    with mock.patch('os.access', mock.Mock(return_value=False)):
+        assert not fb.valid_file_path('test_path')
+
+
+def test_valid_image():
+    """Test for valid images."""
+    assert fb.valid_image('test.jpg')
+    assert not fb.valid_image('test.foo')
 
 
 @pytest.fixture
