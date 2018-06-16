@@ -50,15 +50,16 @@ The service `image_processing.facebox_teach_face` can be used to teach Facebox f
 }
 ```
 
-A `facebox_teach_face` event is fired for each service call, providing feedback on whether teaching has been successful or unsuccessful. In the  unsuccessful case, a warning is also published in the HA logs with the full error message. An automation can be used to receive alerts on teaching, for example the following automation will send a notification with the teaching image and a message describing the status of the teaching:
+An `image_processing.teach_classifier` event is fired for each service call, providing feedback on whether teaching has been successful or unsuccessful. In the unsuccessful case, the `message` field of the event_data will contain info on the cause of failure, and a warning is also published in the HA logs. An automation can be used to receive alerts on teaching, for example the following automation will send a notification with the teaching image and a message describing the status of the teaching:
+
 ```yaml
 - id: '11200961111'
   alias: Send facebox teaching result
   trigger:
     platform: event
-    event_type: image_processing
+    event_type: image_processing.teach_classifier
     event_data:
-      event_type: facebox_teach_face
+      classifier: facebox
   action:
     service: notify.pushbullet
     data_template:

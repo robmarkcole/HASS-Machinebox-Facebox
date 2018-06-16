@@ -23,10 +23,11 @@ from homeassistant.const import (CONF_IP_ADDRESS, CONF_PORT)
 _LOGGER = logging.getLogger(__name__)
 
 ATTR_BOUNDING_BOX = 'bounding_box'
+ATTR_CLASSIFIER = 'classifier'
 ATTR_IMAGE_ID = 'image_id'
 ATTR_MATCHED = 'matched'
 CLASSIFIER = 'facebox'
-EVENT_CLASSIFIER_TEACH = 'image_processing.classifier_teach'
+EVENT_CLASSIFIER_TEACH = 'image_processing.teach_classifier'
 FILE_PATH = 'file_path'
 SERVICE_FACEBOX_TEACH_FACE = 'facebox_teach_face'
 TIMEOUT = 9
@@ -170,17 +171,18 @@ class FaceClassifyEntity(ImageProcessingFaceEntity):
     def teach(self, name, file_path):
         """Teach classifier a face name."""
         if valid_file_path(file_path) and valid_image(file_path):
-            data = {'name': name, "id": file_path}
+            data = {ATTR_NAME: name, 'id': file_path}
             file = {'file': open(file_path, 'rb')}
             response = requests.post(self._url_teach, data=data, files=file)
 
             if response.status_code == 200:
                 self.hass.bus.fire(
                     EVENT_CLASSIFIER_TEACH, {
-                        'classifier': CLASSIFIER,
-                        'name': name,
-                        'file_path': file_path,
+                        ATTR_CLASSIFIER: CLASSIFIER,
+                        ATTR_NAME: name,
+                        FILE_PATH: file_path,
                         'success': True,
+                        'message': None
                         })
 
             elif response.status_code == 400:
@@ -189,10 +191,11 @@ class FaceClassifyEntity(ImageProcessingFaceEntity):
                         CLASSIFIER, file_path, response.text))
                 self.hass.bus.fire(
                     EVENT_CLASSIFIER_TEACH, {
-                        'classifier': CLASSIFIER,
-                        'name': name,
-                        'file_path': file_path,
+                        ATTR_CLASSIFIER: CLASSIFIER,
+                        ATTR_NAME: name,
+                        FILE_PATH: file_path,
                         'success': False,
+                        'message': response.text
                         })
 
     @property

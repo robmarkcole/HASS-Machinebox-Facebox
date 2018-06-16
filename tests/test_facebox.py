@@ -18,6 +18,7 @@ MOCK_IP = '192.168.0.1'
 MOCK_PORT = '8080'
 
 # Mock data returned by the facebox API.
+MOCK_ERROR = "No face found"
 MOCK_FACE = {'confidence': 0.5812028911604818,
              'id': 'john.jpg',
              'matched': True,
@@ -25,10 +26,14 @@ MOCK_FACE = {'confidence': 0.5812028911604818,
              'rect': {'height': 75, 'left': 63, 'top': 262, 'width': 74}
              }
 
+MOCK_FILE_PATH = '/images/mock.jpg'
+
 MOCK_JSON = {"facesCount": 1,
              "success": True,
              "faces": [MOCK_FACE]
              }
+
+MOCK_NAME = 'mock_name'
 
 # Faces data after parsing.
 PARSED_FACES = [{ATTR_NAME: 'John Lennon',
@@ -155,7 +160,7 @@ async def test_teach_service(hass):
         teach_events.append(event)
 
     hass.bus.async_listen(
-        'image_processing.classifier_teach', mock_teach_event)
+        'image_processing.teach_classifier', mock_teach_event)
 
     m_open = mock.mock_open(read_data=b'hello')
     with mock.patch('os.access', mock.Mock(return_value=True)):
@@ -164,14 +169,40 @@ async def test_teach_service(hass):
                 url = "http://{}:{}/facebox/teach".format(MOCK_IP, MOCK_PORT)
                 mock_req.post(url, status_code=200)
                 data = {ATTR_ENTITY_ID: VALID_ENTITY_ID,
-                        ATTR_NAME: 'dummy_name',
-                        fb.FILE_PATH: 'dummy.jpg'}
+                        ATTR_NAME: MOCK_NAME,
+                        fb.FILE_PATH: MOCK_FILE_PATH}
                 await hass.services.async_call(ip.DOMAIN,
                                                fb.SERVICE_FACEBOX_TEACH_FACE,
                                                service_data=data)
                 await hass.async_block_till_done()
 
     assert len(teach_events) == 1
+    assert teach_events[0].data[fb.ATTR_CLASSIFIER] == fb.CLASSIFIER
+    assert teach_events[0].data[ATTR_NAME] == MOCK_NAME
+    assert teach_events[0].data[fb.FILE_PATH] == MOCK_FILE_PATH
+    assert teach_events[0].data['success']
+    assert not teach_events[0].data['message']
+
+    # Now test the failed teaching.
+    with mock.patch('os.access', mock.Mock(return_value=True)):
+        with patch('builtins.open', m_open, create=True):
+            with requests_mock.Mocker() as mock_req:
+                url = "http://{}:{}/facebox/teach".format(MOCK_IP, MOCK_PORT)
+                mock_req.post(url, status_code=400, text=MOCK_ERROR)
+                data = {ATTR_ENTITY_ID: VALID_ENTITY_ID,
+                        ATTR_NAME: MOCK_NAME,
+                        fb.FILE_PATH: MOCK_FILE_PATH}
+                await hass.services.async_call(ip.DOMAIN,
+                                               fb.SERVICE_FACEBOX_TEACH_FACE,
+                                               service_data=data)
+                await hass.async_block_till_done()
+
+    assert len(teach_events) == 2
+    assert teach_events[1].data[fb.ATTR_CLASSIFIER] == fb.CLASSIFIER
+    assert teach_events[1].data[ATTR_NAME] == MOCK_NAME
+    assert teach_events[1].data[fb.FILE_PATH] == MOCK_FILE_PATH
+    assert not teach_events[1].data['success']
+    assert teach_events[1].data['message'] == MOCK_ERROR
 
 
 async def test_connection_error(hass, mock_image):
