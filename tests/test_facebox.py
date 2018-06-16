@@ -63,11 +63,14 @@ def test_encode_image():
     assert fb.encode_image(b'test') == 'dGVzdA=='
 
 
+def test_get_matched_faces():
+    """Test that matched_faces are parsed correctly."""
+    assert fb.get_matched_faces(PARSED_FACES) == MATCHED_FACES
+
+
 def test_parse_faces():
     """Test parsing of raw face data, and generation of matched_faces."""
-    parsed_faces = fb.parse_faces(MOCK_JSON['faces'])
-    assert parsed_faces == PARSED_FACES
-    assert fb.get_matched_faces(parsed_faces) == MATCHED_FACES
+    assert fb.parse_faces(MOCK_JSON['faces']) == PARSED_FACES
 
 
 @pytest.fixture
