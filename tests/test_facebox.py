@@ -142,6 +142,38 @@ async def test_process_image(hass, mock_image):
             PARSED_FACES[0][fb.ATTR_BOUNDING_BOX])
 
 
+async def test_teach_service(hass):
+    """Test teaching of facebox."""
+    await async_setup_component(hass, ip.DOMAIN, VALID_CONFIG)
+    assert hass.states.get(VALID_ENTITY_ID)
+
+    teach_events = []
+
+    @callback
+    def mock_teach_event(event):
+        """Mock event."""
+        teach_events.append(event)
+
+    hass.bus.async_listen(
+        'image_processing.facebox_teach_face', mock_teach_event)
+
+    m_open = mock.mock_open(read_data=b'hello')
+    with mock.patch('os.access', mock.Mock(return_value=True)):
+        with patch('builtins.open', m_open, create=True):
+            with requests_mock.Mocker() as mock_req:
+                url = "http://{}:{}/facebox/teach".format(MOCK_IP, MOCK_PORT)
+                mock_req.post(url, status_code=200)
+                data = {ATTR_ENTITY_ID: VALID_ENTITY_ID,
+                        ATTR_NAME: 'dummy_name',
+                        fb.FILE_PATH: 'dummy.jpg'}
+                await hass.services.async_call(ip.DOMAIN,
+                                               fb.SERVICE_FACEBOX_TEACH_FACE,
+                                               service_data=data)
+                await hass.async_block_till_done()
+
+    assert len(teach_events) == 1
+
+
 async def test_connection_error(hass, mock_image):
     """Test connection error."""
     await async_setup_component(hass, ip.DOMAIN, VALID_CONFIG)
