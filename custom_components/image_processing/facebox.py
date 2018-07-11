@@ -81,14 +81,10 @@ def parse_faces(api_faces):
 
 def post_image(url, username, password, image):
     """Post an image to the classifier."""
-    if username and password:
-        auth = requests.auth.HTTPBasicAuth(username, password)
-    else:
-        auth = requests.auth.HTTPBasicAuth(None, None)
     try:
         response = requests.post(
             url,
-            auth=auth,
+            auth=requests.auth.HTTPBasicAuth(username, password),
             json={"base64": encode_image(image)},
             timeout=TIMEOUT
             )
@@ -102,15 +98,11 @@ def post_image(url, username, password, image):
 
 def teach_file(url, username, password, name, file_path):
     """Teach the classifier a name associated with a file."""
-    if username and password:
-        auth = requests.auth.HTTPBasicAuth(username, password)
-    else:
-        auth = requests.auth.HTTPBasicAuth(None, None)
     try:
         with open(file_path, 'rb') as open_file:
             response = requests.post(
                 url,
-                auth=auth,
+                auth=requests.auth.HTTPBasicAuth(username, password),
                 data={ATTR_NAME: name, 'id': file_path},
                 files={'file': open_file})
         if response.status_code == HTTP_UNAUTHORIZED:
