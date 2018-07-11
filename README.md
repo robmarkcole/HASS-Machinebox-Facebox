@@ -11,12 +11,16 @@ image_processing:
   - platform: facebox
     ip_address: localhost # or e.g. 192.168.0.1
     port: 8080
+    username: my_username
+    password: my_password
     source:
       - entity_id: camera.local_file
 ```
 Configuration variables:
 - **ip_address**: the ip address of your facebox instance.
 - **port**: the port of your facebox instance.
+- **username**: (Optional) the username if you are using authentication.
+- **password**: (Optional) the password if you are using authentication
 - **source**: Must be a camera.
 
 
@@ -81,6 +85,11 @@ Run facebox with:
 MB_KEY="INSERT-YOUR-KEY-HERE"
 
 sudo docker run -p 8080:8080 -e "MB_KEY=$MB_KEY" machinebox/facebox
+```
+
+To run [with authentication](https://machinebox.io/docs/machine-box-apis#basic-authentication):
+```
+sudo docker run -e "MB_BASICAUTH_USER=my_username" -e "MB_BASICAUTH_PASS=my_password" -p 8080:8080 -e "MB_KEY=$MB_KEY" machinebox/facebox
 ```
 
 If you receive errors complaining of lack of RAM, but you do have sufficient ram, try the `machinebox/facebox_noavx` container.
