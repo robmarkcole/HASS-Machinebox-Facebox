@@ -100,6 +100,27 @@ def post_image(url, username, password, image):
         _LOGGER.error("ConnectionError: Is %s running?", CLASSIFIER)
 
 
+def teach_file(url, username, password, name, file_path):
+    """Teach the classifier a name associated with a file."""
+    if username and password:
+        auth = requests.auth.HTTPBasicAuth(username, password)
+    else:
+        auth = requests.auth.HTTPBasicAuth(None, None)
+    try:
+        with open(file_path, 'rb') as open_file:
+            response = requests.post(
+                url,
+                auth=auth,
+                data={ATTR_NAME: name, 'id': file_path},
+                files={'file': open_file})
+        if response.status_code == HTTP_UNAUTHORIZED:
+            _LOGGER.error("AuthenticationError on %s", CLASSIFIER)
+        else:
+            return response
+    except requests.exceptions.ConnectionError:
+        _LOGGER.error("ConnectionError: Is %s running?", CLASSIFIER)
+
+
 def valid_file_path(file_path):
     """Check that a file_path points to a valid file."""
     try:
@@ -201,38 +222,36 @@ class FaceClassifyEntity(ImageProcessingFaceEntity):
         if (not self.hass.config.is_allowed_path(file_path)
                 or not valid_file_path(file_path)):
             return
-        with open(file_path, 'rb') as open_file:
-            response = requests.post(
-                self._url_teach,
-#                auth=self._auth,
-                data={ATTR_NAME: name, 'id': file_path},
-                files={'file': open_file})
 
-        if response.status_code == HTTP_OK:
-            self.hass.bus.fire(
-                EVENT_CLASSIFIER_TEACH, {
-                    ATTR_CLASSIFIER: CLASSIFIER,
-                    ATTR_NAME: name,
-                    FILE_PATH: file_path,
-                    'success': True,
-                    'message': None
-                    })
+        response = teach_file(self._url_teach,
+                              self._username,
+                              self._password,
+                              name,
+                              file_path)
 
-        elif response.status_code == HTTP_BAD_REQUEST:
-            _LOGGER.warning(
-                "%s teaching of file %s failed with message:%s",
-                CLASSIFIER, file_path, response.text)
-            self.hass.bus.fire(
-                EVENT_CLASSIFIER_TEACH, {
-                    ATTR_CLASSIFIER: CLASSIFIER,
-                    ATTR_NAME: name,
-                    FILE_PATH: file_path,
-                    'success': False,
-                    'message': response.text
-                    })
+        if response is not None:
+            if response.status_code == HTTP_OK:
+                self.hass.bus.fire(
+                    EVENT_CLASSIFIER_TEACH, {
+                        ATTR_CLASSIFIER: CLASSIFIER,
+                        ATTR_NAME: name,
+                        FILE_PATH: file_path,
+                        'success': True,
+                        'message': None
+                        })
 
-        elif response.status_code == HTTP_UNAUTHORIZED:
-            _LOGGER.error("AuthenticationError on %s", CLASSIFIER)
+            elif response.status_code == HTTP_BAD_REQUEST:
+                _LOGGER.warning(
+                    "%s teaching of file %s failed with message:%s",
+                    CLASSIFIER, file_path, response.text)
+                self.hass.bus.fire(
+                    EVENT_CLASSIFIER_TEACH, {
+                        ATTR_CLASSIFIER: CLASSIFIER,
+                        ATTR_NAME: name,
+                        FILE_PATH: file_path,
+                        'success': False,
+                        'message': response.text
+                        })
 
     @property
     def camera_entity(self):
