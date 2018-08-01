@@ -18,7 +18,8 @@ MOCK_IP = '192.168.0.1'
 MOCK_PORT = '8080'
 
 # Mock data returned by the facebox API.
-MOCK_ERROR = "No face found"
+MOCK_BOX_ID = 'b893cc4f7fd6'
+MOCK_ERROR_NO_FACE = "No face found"
 MOCK_FACE = {'confidence': 0.5812028911604818,
              'id': 'john.jpg',
              'matched': True,
@@ -61,6 +62,14 @@ VALID_CONFIG = {
         'platform': 'demo'
         }
     }
+
+
+@pytest.fixture
+def mock_healthybox():
+    """Mock fb.check_box_health."""
+    with patch('homeassistant.components.image_processing.facebox.check_box_health',
+               return_value=MOCK_BOX_ID) as _mock_healthybox:
+        yield _mock_healthybox
 
 
 @pytest.fixture
@@ -109,13 +118,13 @@ def mock_image():
         yield image
 
 
-async def test_setup_platform(hass):
+async def test_setup_platform(hass, mock_healthybox):
     """Setup platform with one entity."""
     await async_setup_component(hass, ip.DOMAIN, VALID_CONFIG)
     assert hass.states.get(VALID_ENTITY_ID)
 
 
-async def test_setup_platform_with_auth(hass):
+async def test_setup_platform_with_auth(hass, mock_healthybox):
     """Setup platform with one entity and auth."""
     valid_config_auth = VALID_CONFIG.copy()
     valid_config_auth[ip.DOMAIN][CONF_USERNAME] = MOCK_USERNAME
@@ -125,7 +134,7 @@ async def test_setup_platform_with_auth(hass):
     assert hass.states.get(VALID_ENTITY_ID)
 
 
-async def test_process_image(hass, mock_image):
+async def test_process_image(hass, mock_healthybox, mock_image):
     """Test processing of an image."""
     await async_setup_component(hass, ip.DOMAIN, VALID_CONFIG)
     assert hass.states.get(VALID_ENTITY_ID)
@@ -168,7 +177,7 @@ async def test_process_image(hass, mock_image):
             PARSED_FACES[0][fb.ATTR_BOUNDING_BOX])
 
 
-async def test_connection_error(hass, mock_image):
+async def test_connection_error(hass, mock_healthybox, mock_image):
     """Test connection error."""
     await async_setup_component(hass, ip.DOMAIN, VALID_CONFIG)
     assert hass.states.get(VALID_ENTITY_ID)
@@ -189,7 +198,8 @@ async def test_connection_error(hass, mock_image):
     assert state.attributes.get('matched_faces') == {}
 
 
-async def test_teach_service(hass, mock_image, mock_isfile, mock_open_file):
+async def test_teach_service(
+        hass, mock_healthybox, mock_image, mock_isfile, mock_open_file):
     """Test teaching of facebox."""
     await async_setup_component(hass, ip.DOMAIN, VALID_CONFIG)
     assert hass.states.get(VALID_ENTITY_ID)
@@ -210,7 +220,8 @@ async def test_teach_service(hass, mock_image, mock_isfile, mock_open_file):
     # Now test the failed teaching.
     with requests_mock.Mocker() as mock_req:
         url = "http://{}:{}/facebox/teach".format(MOCK_IP, MOCK_PORT)
-        mock_req.post(url, status_code=HTTP_BAD_REQUEST, text=MOCK_ERROR)
+        mock_req.post(url, status_code=HTTP_BAD_REQUEST,
+                      text=MOCK_ERROR_NO_FACE)
         data = {ATTR_ENTITY_ID: VALID_ENTITY_ID,
                 ATTR_NAME: MOCK_NAME,
                 fb.FILE_PATH: MOCK_FILE_PATH}
@@ -220,7 +231,7 @@ async def test_teach_service(hass, mock_image, mock_isfile, mock_open_file):
         await hass.async_block_till_done()
 
 
-async def test_setup_platform_with_name(hass):
+async def test_setup_platform_with_name(hass, mock_healthybox):
     """Setup platform with one entity and a name."""
     named_entity_id = 'image_processing.{}'.format(MOCK_NAME)
 

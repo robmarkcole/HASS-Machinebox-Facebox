@@ -202,6 +202,7 @@ class FaceClassifyEntity(ImageProcessingFaceEntity):
             ip_address, port, CLASSIFIER)
         self._username = username
         self._password = password
+        self._hostname = 'ted'
         self._hostname = check_box_health(
             self._url_health, self._username, self._password)
         self._camera = camera_entity
