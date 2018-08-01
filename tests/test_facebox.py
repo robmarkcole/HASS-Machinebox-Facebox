@@ -9,7 +9,7 @@ from homeassistant.core import callback
 from homeassistant.const import (
     ATTR_ENTITY_ID, ATTR_NAME, CONF_FRIENDLY_NAME, CONF_PASSWORD,
     CONF_USERNAME, CONF_IP_ADDRESS, CONF_PORT,
-    HTTP_BAD_REQUEST, HTTP_OK, STATE_UNKNOWN)
+    HTTP_BAD_REQUEST, HTTP_OK, HTTP_UNAUTHORIZED, STATE_UNKNOWN)
 from homeassistant.setup import async_setup_component
 import homeassistant.components.image_processing as ip
 import homeassistant.components.image_processing.facebox as fb
@@ -102,12 +102,16 @@ def mock_open_file():
         yield _mock_open
 
 
-def test_check_box_health():
+def test_check_box_health(caplog):
     """Test check box health."""
     with requests_mock.Mocker() as mock_req:
         url = "http://{}:{}/healthz".format(MOCK_IP, MOCK_PORT)
         mock_req.get(url, status_code=HTTP_OK, json=MOCK_HEALTH)
         assert fb.check_box_health(url, None, None) == MOCK_BOX_ID
+
+        mock_req.get(url, status_code=HTTP_UNAUTHORIZED)
+        assert fb.check_box_health(url, None, None) is None
+        assert 'AuthenticationError on facebox' in caplog.text
 
 def test_encode_image():
     """Test that binary data is encoded correctly."""
