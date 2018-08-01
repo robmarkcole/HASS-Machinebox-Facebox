@@ -28,6 +28,11 @@ MOCK_FACE = {'confidence': 0.5812028911604818,
 
 MOCK_FILE_PATH = '/images/mock.jpg'
 
+MOCK_HEALTH = {'success': True,
+               'hostname': 'b893cc4f7fd6',
+               'metadata': {'boxname': 'facebox', 'build': 'development'},
+               'errors': []}
+
 MOCK_JSON = {"facesCount": 1,
              "success": True,
              "faces": [MOCK_FACE]}
@@ -81,6 +86,14 @@ def mock_isfile():
 
 
 @pytest.fixture
+def mock_image():
+    """Return a mock camera image."""
+    with patch('homeassistant.components.camera.demo.DemoCamera.camera_image',
+               return_value=b'Test') as image:
+        yield image
+
+
+@pytest.fixture
 def mock_open_file():
     """Mock open."""
     mopen = mock_open()
@@ -88,6 +101,13 @@ def mock_open_file():
                mopen, create=True) as _mock_open:
         yield _mock_open
 
+
+def test_check_box_health():
+    """Test check box health."""
+    with requests_mock.Mocker() as mock_req:
+        url = "http://{}:{}/healthz".format(MOCK_IP, MOCK_PORT)
+        mock_req.get(url, status_code=HTTP_OK, json=MOCK_HEALTH)
+        assert fb.check_box_health(url, None, None) == MOCK_BOX_ID
 
 def test_encode_image():
     """Test that binary data is encoded correctly."""
@@ -108,14 +128,6 @@ def test_parse_faces():
 def test_valid_file_path():
     """Test that an invalid file_path is caught."""
     assert not fb.valid_file_path('test_path')
-
-
-@pytest.fixture
-def mock_image():
-    """Return a mock camera image."""
-    with patch('homeassistant.components.camera.demo.DemoCamera.camera_image',
-               return_value=b'Test') as image:
-        yield image
 
 
 async def test_setup_platform(hass, mock_healthybox):
