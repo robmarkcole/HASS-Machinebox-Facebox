@@ -221,7 +221,8 @@ async def test_connection_error(hass, mock_healthybox, mock_image):
 
 
 async def test_teach_service(
-        hass, mock_healthybox, mock_image, mock_isfile, mock_open_file):
+        hass, mock_healthybox, mock_image, 
+        mock_isfile, mock_open_file, caplog):
     """Test teaching of facebox."""
     await async_setup_component(hass, ip.DOMAIN, VALID_CONFIG)
     assert hass.states.get(VALID_ENTITY_ID)
@@ -251,6 +252,7 @@ async def test_teach_service(
                                        fb.SERVICE_TEACH_FACE,
                                        service_data=data)
         await hass.async_block_till_done()
+        assert MOCK_ERROR_NO_FACE in caplog.text
 
 
 async def test_setup_platform_with_name(hass, mock_healthybox):
