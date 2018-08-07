@@ -11,12 +11,16 @@ image_processing:
   - platform: facebox
     ip_address: localhost # or e.g. 192.168.0.1
     port: 8080
+    username: my_username
+    password: my_password
     source:
       - entity_id: camera.local_file
 ```
 Configuration variables:
 - **ip_address**: the ip address of your facebox instance.
 - **port**: the port of your facebox instance.
+- **username**: (Optional) the username if you are using authentication.
+- **password**: (Optional) the password if you are using authentication
 - **source**: Must be a camera.
 
 
@@ -50,25 +54,6 @@ The service `image_processing.facebox_teach_face` can be used to teach Facebox f
 }
 ```
 
-An `image_processing.teach_classifier` event is fired for each service call, providing feedback on whether teaching has been successful or unsuccessful. In the unsuccessful case, the `message` field of the event_data will contain info on the cause of failure, and a warning is also published in the HA logs. An automation can be used to receive alerts on teaching, for example the following automation will send a notification with the teaching image and a message describing the status of the teaching:
-
-```yaml
-- id: '11200961111'
-  alias: Send facebox teaching result
-  trigger:
-    platform: event
-    event_type: image_processing.teach_classifier
-    event_data:
-      classifier: facebox
-  action:
-    service: notify.pushbullet
-    data_template:
-      title: Facebox teaching
-      message: Name {{ trigger.event.data.name }} teaching was successful? {{ trigger.event.data.success }}
-      data:
-        file: ' {{trigger.event.data.file_path}} '
-```
-
 ## Appearence on HA front-end
 
 <p align="center">
@@ -81,6 +66,11 @@ Run facebox with:
 MB_KEY="INSERT-YOUR-KEY-HERE"
 
 sudo docker run -p 8080:8080 -e "MB_KEY=$MB_KEY" machinebox/facebox
+```
+
+To run [with authentication](https://machinebox.io/docs/machine-box-apis#basic-authentication):
+```
+sudo docker run -e "MB_BASICAUTH_USER=my_username" -e "MB_BASICAUTH_PASS=my_password" -p 8080:8080 -e "MB_KEY=$MB_KEY" machinebox/facebox
 ```
 
 If you receive errors complaining of lack of RAM, but you do have sufficient ram, try the `machinebox/facebox_noavx` container.
