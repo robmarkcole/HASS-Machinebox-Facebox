@@ -71,7 +71,29 @@ You can use an automation to receive a notification when you train a face:
       with file {{ trigger.event.data.service_data.file_path }}'
       title: Face taught notification
 ```
-Any errors on teaching will be reported in the logs.
+
+Any errors on teaching will be reported in the logs. If you enable [system_log](https://www.home-assistant.io/components/system_log/) events:
+```yaml
+system_log:
+  fire_event: true
+```
+
+you can create an automation to receive notifications on Facebox errors:
+```yaml
+- id: '1533703568577'
+  alias: Facebox error
+  trigger:
+    platform: event
+    event_type: system_log_event
+  condition:
+    condition: template
+    value_template: '{{ "facebox" in trigger.event.data.message }}'
+  action:
+  - service: notify.pushbullet
+    data_template:
+      message: '{{ trigger.event.data.message }}'
+      title: Facebox error
+```
 
 ## Appearence on HA front-end
 
