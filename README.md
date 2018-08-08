@@ -54,6 +54,25 @@ The service `image_processing.facebox_teach_face` can be used to teach Facebox f
 }
 ```
 
+You can use an automation to receive a notification when you train a face:
+```yaml
+- id: '1533703568569'
+  alias: Face taught
+  trigger:
+  - event_data:
+      service: facebox_teach_face
+    event_type: call_service
+    platform: event
+  condition: []
+  action:
+  - service: notify.pushbullet
+    data_template:
+      message: '{{ trigger.event.data.service_data.name }} taught 
+      with file {{ trigger.event.data.service_data.file_path }}'
+      title: Face taught notification
+```
+Any errors on teaching will be reported in the logs.
+
 ## Appearence on HA front-end
 
 <p align="center">
