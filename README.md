@@ -126,3 +126,15 @@ You can also reduce the time for face detection (counting number of faces only) 
 
 #### Training
 You can use [this script](https://github.com/robmarkcole/facebox_python) to train facebox. Note that training is only possible when facebox is in recognition mode (i.e. default behaviour of `MB_FACEBOX_DISABLE_RECOGNITION=false`).
+
+## State file
+
+Once you have trained facebox you can download the state file using:
+```curl
+curl -o state.facebox http://localhost:8080/facebox/state
+```
+
+If you restart facebox and loose the state, you can upload your saved state file using:
+```curl
+curl -X POST -F 'file=@state.facebox' http://localhost:8080/facebox/state
+```
